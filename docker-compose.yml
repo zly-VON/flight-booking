@@ -1,0 +1,74 @@
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "4000:4000"
+    depends_on:
+      - user_service
+      - booking_service
+    networks:
+      - flights-network
+
+  user_service:
+    build:
+      context: ./user_service
+    ports:
+      - "5000:5000"
+    depends_on:
+      - user_db
+    networks:
+      - flights-network
+
+  user_db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: user_db
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+      - ./user_db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - flights-network
+
+  booking_service:
+    build:
+      context: ./booking_service
+    ports:
+      - "5001:5001"
+    depends_on:
+      - flight_db
+    networks:
+      - flights-network
+
+  flight_db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: milena
+      MYSQL_DATABASE: flight_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password
+    volumes:
+      - flight_db_data:/var/lib/mysql
+      - ./flight_db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    ports:
+      - "3307:3306"
+    networks:
+      - flights-network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - flights-network
+
+networks:
+  flights-network:
+    driver: bridge
+
+volumes:
+  user_db_data:
+  flight_db_data:

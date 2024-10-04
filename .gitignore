@@ -1,0 +1,12 @@
+# gateway
+gateway/node_modules
+gateway/package-lock.json
+gateway/package.json
+
+# booking_service
+booking_service/__pycache__
+booking_service/venv
+
+# user_service
+user_service/__pycache__
+user_service/venv
