@@ -1,4 +1,3 @@
-// gateway/serviceDiscovery.js
 const express = require('express');
 const router = express.Router();
 
@@ -13,9 +12,11 @@ const registerService = (serviceName, serviceUrl) => {
     if (!services[serviceName]) {
         services[serviceName] = [];
     }
-    
-    services[serviceName].push(serviceUrl);
-    console.log(`Service registered: ${serviceName} at ${serviceUrl}`);
+
+    const instanceName = serviceUrl.split('/')[2].split(':')[0];
+    services[serviceName].push({ url: serviceUrl, instance: instanceName });
+
+    console.log(`Service registered: ${serviceName} at ${serviceUrl} (Instance: ${instanceName})`);
 };
 
 router.get('/services', (req, res) => {
@@ -41,6 +42,7 @@ const serviceIndices = {
 };
 
 
+// round robin
 const getNextServiceUrl = (serviceName) => {
     if (!services[serviceName] || services[serviceName].length === 0) {
         throw new Error(`Service ${serviceName} not found or has no registered instances`);
@@ -49,11 +51,12 @@ const getNextServiceUrl = (serviceName) => {
     const urls = services[serviceName];
     const index = serviceIndices[serviceName];
 
-    const nextUrl = urls[index];
+    const { url: nextUrl, instance } = urls[index];
     serviceIndices[serviceName] = (index + 1) % urls.length;
 
-    console.log(`Routing request to ${nextUrl}.`);
-    return nextUrl;
+    console.log(`Routing request to ${instance} at ${nextUrl}.`);
+
+    return { instanceName: instance, url: nextUrl }; 
 };
 
 

@@ -1,5 +1,3 @@
-// gateway/index.js
-
 const express = require('express');
 const axios = require('axios');
 const userRoutes = require('./routes/user');
@@ -23,8 +21,6 @@ const timeout = (req, res, next) => {
 app.use(express.json());
 app.use(timeout);
 
-app.use('/api/discovery', serviceDiscoveryRoutes);
-
 app.get('/status', (req, res) => {
     return res.status(200).json({
         status: 'Gateway is running',
@@ -41,6 +37,7 @@ app.get('/test-timeout', (req, res) => {
     }, delay);
 });
 
+app.use('/api/discovery', serviceDiscoveryRoutes);
 app.use('/api/auth', userRoutes);
 app.use('/api/flight', flightRoutes);
 

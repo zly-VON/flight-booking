@@ -4,64 +4,64 @@ from models import User, Subscription
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_socketio import emit, join_room, leave_room
-import eventlet
+# import eventlet
 
-@app.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
+# @app.route('/register', methods=['POST'])
+# def register():
+#     data = request.get_json()
     
-    if not data or not data.get('username') or not data.get('password') or not data.get('email'):
-        return jsonify({"message": "Missing username, password, or email"}), 400
+#     if not data or not data.get('username') or not data.get('password') or not data.get('email'):
+#         return jsonify({"message": "Missing username, password, or email"}), 400
     
-    if User.query.filter_by(username=data['username']).first() or User.query.filter_by(email=data['email']).first():
-        return jsonify({"message": "Username or Email already exists"}), 400
+#     if User.query.filter_by(username=data['username']).first() or User.query.filter_by(email=data['email']).first():
+#         return jsonify({"message": "Username or Email already exists"}), 400
 
-    hashed_password = generate_password_hash(data['password'])
+#     hashed_password = generate_password_hash(data['password'])
 
-    new_user = User(
-        username=data['username'],
-        password=hashed_password,
-        email=data['email']
-    )
+#     new_user = User(
+#         username=data['username'],
+#         password=hashed_password,
+#         email=data['email']
+#     )
 
-    db.session.add(new_user)
-    db.session.commit()
+#     db.session.add(new_user)
+#     db.session.commit()
 
-    return jsonify({
-        "message": "User registered successfully",
-        "userId": new_user.id
-    }), 201
+#     return jsonify({
+#         "message": "User registered successfully",
+#         "userId": new_user.id
+#     }), 201
 
 
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
+# @app.route('/login', methods=['POST'])
+# def login():
+#     data = request.get_json()
 
-    if not data or not data.get('username') or not data.get('password'):
-        return jsonify({"message": "Missing username or password"}), 400
+#     if not data or not data.get('username') or not data.get('password'):
+#         return jsonify({"message": "Missing username or password"}), 400
 
-    user = User.query.filter_by(username=data['username']).first()
+#     user = User.query.filter_by(username=data['username']).first()
     
-    if user and check_password_hash(user.password, data['password']):
-        access_token = create_access_token(identity=user.id)
-        return jsonify({
-            "message": "Login successful",
-            "userId": user.id,
-            "token": access_token
-        }), 200
-    else:
-        return jsonify({"message": "Invalid username or password"}), 401
+#     if user and check_password_hash(user.password, data['password']):
+#         access_token = create_access_token(identity=user.id)
+#         return jsonify({
+#             "message": "Login successful",
+#             "userId": user.id,
+#             "token": access_token
+#         }), 200
+#     else:
+#         return jsonify({"message": "Invalid username or password"}), 401
 
 
-@app.route('/user-subscriptions/<int:user_id>', methods=['GET'])
-def get_user_flights(user_id):
-    subscriptions = Subscription.query.filter_by(user_id=user_id).all()
-    flights = [subscription.flight_code for subscription in subscriptions]
+# @app.route('/user-subscriptions/<int:user_id>', methods=['GET'])
+# def get_user_flights(user_id):
+#     subscriptions = Subscription.query.filter_by(user_id=user_id).all()
+#     flights = [subscription.flight_code for subscription in subscriptions]
 
-    return jsonify({
-        "userId": user_id,
-        "flights": flights
-    })
+#     return jsonify({
+#         "userId": user_id,
+#         "flights": flights
+#     })
 
 
 @socketio.on('connect')
@@ -87,17 +87,14 @@ def handle_subscription(data):
     flight_code = data.get('flight_code')
 
     if flight_code:
-        # Check if the user is already subscribed to this flight code
         existing_subscription = Subscription.query.filter_by(user_id=user_id, flight_code=flight_code).first()
 
         if existing_subscription:
             emit('subscription_response', {'message': f'Already subscribed to flight updates for {flight_code}'})
-            return  # Exit the function early to avoid re-adding the subscription
+            return 
 
-        room = f'flight_updates_{flight_code}'  # Room name based on flight code
-        # join_room(room)  # User joins the specific room
+        room = f'flight_updates_{flight_code}'  
 
-        # Save subscription to the database
         subscription = Subscription(user_id=user_id, flight_code=flight_code)
         db.session.add(subscription)
         db.session.commit()
@@ -134,16 +131,14 @@ def handle_unsubscription(data):
     flight_code = data.get('flight_code')
 
     if flight_code:
-        # Find the subscription to delete
         subscription = Subscription.query.filter_by(user_id=user_id, flight_code=flight_code).first()
 
         if subscription:
-            # Remove the subscription from the database
             db.session.delete(subscription)
             db.session.commit()
 
             room = f'flight_updates_{flight_code}'
-            leave_room(room)  # User leaves the specific room
+            leave_room(room) 
 
             emit('unsubscription_response', {'message': f'Unsubscribed from flight updates for {flight_code}'})
         else:
@@ -172,7 +167,6 @@ def handle_disconnect_room(data):
         emit('disconnection_response', {'message': 'Flight code is missing'})
 
 
-# Broadcast flight updates (Example - this can be triggered by another service)
 @socketio.on('broadcast_update')
 def handle_flight_update(data):
     flight_code = data.get('flight_code')
@@ -183,3 +177,8 @@ def handle_flight_update(data):
         emit('flight_update', {'update': update}, room=room)
     else:
         emit('flight_update', {'message': 'Flight code or update is missing'})
+
+
+@app.route('/simulate-failure', methods=['GET'])
+def simulate_failure():
+    raise Exception("Simulated failure for testing purposes.")

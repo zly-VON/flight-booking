@@ -1,6 +1,6 @@
-\c flight_db;
+USE flight_db;
 
-CREATE TABLE flights (
+CREATE TABLE IF NOT EXISTS flights (
     id INT AUTO_INCREMENT PRIMARY KEY,
     flight_code VARCHAR(10) UNIQUE NOT NULL,
     airline VARCHAR(100) NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE flights (
     status VARCHAR(30) NOT NULL
 );
 
-CREATE TABLE bookings (
+CREATE TABLE IF NOT EXISTS bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     flight_id INT NOT NULL,
