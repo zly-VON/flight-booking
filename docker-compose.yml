@@ -4,16 +4,46 @@ services:
     ports:
       - "4000:4000"
     depends_on:
-      - user_service
-      - booking_service
+      - user_service_1
+      - user_service_2
+      - user_service_3
+      - booking_service_1
+      - booking_service_2
+      - booking_service_3
     networks:
       - flights-network
 
-  user_service:
+  user_service_1:
     build:
       context: ./user_service
     ports:
       - "5000:5000"
+    # deploy:
+    #   replicas: 3
+    depends_on:
+      - user_db
+    networks:
+      - flights-network
+
+  user_service_2:
+    build:
+      context: ./user_service
+    ports:
+      - "5001:5000"
+    # deploy:
+    #   replicas: 3
+    depends_on:
+      - user_db
+    networks:
+      - flights-network
+
+  user_service_3:
+    build:
+      context: ./user_service
+    ports:
+      - "5002:5000"
+    # deploy:
+    #   replicas: 3
     depends_on:
       - user_db
     networks:
@@ -33,11 +63,37 @@ services:
     networks:
       - flights-network
 
-  booking_service:
+  booking_service_1:
     build:
       context: ./booking_service
     ports:
-      - "5001:5001"
+      - "5004:5000"
+    # deploy:
+    #   replicas: 3
+    depends_on:
+      - flight_db
+    networks:
+      - flights-network
+
+  booking_service_2:
+    build:
+      context: ./booking_service
+    ports:
+      - "5005:5000"
+    # deploy:
+    #   replicas: 3
+    depends_on:
+      - flight_db
+    networks:
+      - flights-network
+
+  booking_service_3:
+    build:
+      context: ./booking_service
+    ports:
+      - "5006:5000"
+    # deploy:
+    #   replicas: 3
     depends_on:
       - flight_db
     networks:

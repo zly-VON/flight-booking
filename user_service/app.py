@@ -6,6 +6,10 @@ from flask_jwt_extended import JWTManager
 from datetime import timedelta
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_socketio import SocketIO
+from flask_cors import CORS
+
+socketio = SocketIO()
 
 def create_app():
     app = Flask(__name__)
@@ -14,8 +18,10 @@ def create_app():
     app.config["JWT_SECRET_KEY"] = "my-secret"
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 
+    CORS(app)
     db.init_app(app)
-
+    socketio.init_app(app, cors_allowed_origins="*")
+    
     limiter = Limiter(
         get_remote_address,
         default_limits=["5 per minute"]
@@ -35,4 +41,5 @@ if __name__ == '__main__':
     import routes
 
     jwt = JWTManager(app)
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    # app.run(debug=False, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)

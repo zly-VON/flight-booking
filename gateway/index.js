@@ -1,7 +1,10 @@
+// gateway/index.js
+
 const express = require('express');
 const axios = require('axios');
 const userRoutes = require('./routes/user');
 const flightRoutes = require('./routes/flight');
+const { router: serviceDiscoveryRoutes } = require('./serviceDiscovery');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -20,10 +23,21 @@ const timeout = (req, res, next) => {
 app.use(express.json());
 app.use(timeout);
 
+app.use('/api/discovery', serviceDiscoveryRoutes);
+
+app.get('/status', (req, res) => {
+    return res.status(200).json({
+        status: 'Gateway is running',
+        port: PORT,
+        uptime: process.uptime()
+    });
+});
+
 app.get('/test-timeout', (req, res) => {
     const delay = req.query.delay ? parseInt(req.query.delay) : 6000;
 
     setTimeout(() => {
+        res.send('Response after delay');
     }, delay);
 });
 
