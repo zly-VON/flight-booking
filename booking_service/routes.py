@@ -5,7 +5,7 @@ from models import Flight, Booking
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import json
 
-@app.route('/seed', methods=['POST'])
+@app.route('/seed', methods=['GET'])
 def seed_database():
     if Flight.query.count() == 0:
         flight_data = [

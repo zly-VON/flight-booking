@@ -1,0 +1,372 @@
+{
+	"info": {
+		"_postman_id": "8b995456-4e90-4ca7-acd8-f59c989a40b4",
+		"name": "Flight Booking Gateway",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29606612"
+	},
+	"item": [
+		{
+			"name": "/register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"user2\",\r\n    \"password\": \"user2\" ,\r\n    \"email\": \"user2@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/api/auth/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"user2\",\r\n    \"password\": \"user2\" \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/api/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/user-subscriptions/<user_id>",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/api/auth/user-subscriptions/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"api",
+						"auth",
+						"user-subscriptions",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/search-flights",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/api/flight/search-flights?from=Chisinau&to=London",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"api",
+						"flight",
+						"search-flights"
+					],
+					"query": [
+						{
+							"key": "from",
+							"value": "Chisinau"
+						},
+						{
+							"key": "to",
+							"value": "London"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/book-flight",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyODEwNzMwOCwianRpIjoiYTZlMmRhMmYtZmZjMi00NjBhLTllNzUtODg0MjNkMTIxMDhmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MiwibmJmIjoxNzI4MTA3MzA4LCJjc3JmIjoiMDEyMTc3YjAtNTY1Ni00MmQ4LTg5YTgtM2Q5YTI5ZTQ2NzJhIiwiZXhwIjoxNzI4MTEwOTA4fQ.cV4tgzucSfAjkHjTOC5uALqaBxorVxOXmuUelq2IUVg"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"flightId\": \"FL001\",\r\n    \"paymentMethod\": \"credit_card\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/api/flight/book-flight",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"api",
+						"flight",
+						"book-flight"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/bookings/<user_id>",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyODEwNzMwOCwianRpIjoiYTZlMmRhMmYtZmZjMi00NjBhLTllNzUtODg0MjNkMTIxMDhmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MiwibmJmIjoxNzI4MTA3MzA4LCJjc3JmIjoiMDEyMTc3YjAtNTY1Ni00MmQ4LTg5YTgtM2Q5YTI5ZTQ2NzJhIiwiZXhwIjoxNzI4MTEwOTA4fQ.cV4tgzucSfAjkHjTOC5uALqaBxorVxOXmuUelq2IUVg",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:4000/api/flight/bookings/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"api",
+						"flight",
+						"bookings",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/cancel-booking/<booking_id>",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyODA3Mzk0MCwianRpIjoiZmEzOTMxYjktNzQ1MC00Yzc4LWE5ZTMtMTJhZjNlYTgyOWEyIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MSwibmJmIjoxNzI4MDczOTQwLCJjc3JmIjoiNzQzMzllYzMtY2JlMS00MjA3LTgyOGUtODg2NTY1ODU4MTU5IiwiZXhwIjoxNzI4MDc3NTQwfQ.NpSRyqQvck11UcQDP1nTbs0H-cg3tKbWz6n7nk1tH5A",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/api/flight/cancel-booking/4",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"api",
+						"flight",
+						"cancel-booking",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/test-timeout",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/test-timeout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"test-timeout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/discovery/status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/api/discovery/status",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"api",
+						"discovery",
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/gateway/status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/status",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/simulate-failure",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"user2\",\r\n    \"password\": \"user2\" \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/api/auth/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"api",
+						"auth",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/seed",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/api/flight/seed",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"api",
+						"flight",
+						"seed"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

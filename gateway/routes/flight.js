@@ -4,6 +4,33 @@ const router = express.Router();
 const { getNextServiceUrl } = require('../serviceDiscovery');
 const { withCircuitBreaker } = require('../circuitBreaker');
 
+router.get('/seed', async (req, res) => {
+    const serviceName = 'booking_service';
+    try {
+        const { instanceName, url: SERVICE_2_URL } = getNextServiceUrl(serviceName);
+        const response = await withCircuitBreaker(instanceName, async () => {
+            return await axios.get(`${SERVICE_2_URL}/seed`)
+        });
+
+        res.status(response.status).json(response.data);
+    } catch (error) {
+        res.status(error.response?.status || 500).send(error.response?.data || { message: 'Server error' });
+    }
+});
+
+router.get('/home', async (req, res) => {
+    const serviceName = 'booking_service';
+    try {
+        const { instanceName, url: SERVICE_2_URL } = getNextServiceUrl(serviceName);
+        const response = await withCircuitBreaker(instanceName, async () => {
+            return await axios.get(`${SERVICE_2_URL}/`);
+        });
+        res.status(response.status).json(response.data);
+    } catch (error) {
+        console.error('Error occurred:', error);
+        res.status(error.response?.status || 500).send(error.response?.data || { message: 'Server error' });
+    }
+});
 
 router.get('/search-flights', async (req, res) => {
     const serviceName = 'booking_service';

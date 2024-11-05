@@ -21,7 +21,7 @@ const timeout = (req, res, next) => {
 app.use(express.json());
 app.use(timeout);
 
-app.get('/status', (req, res) => {
+app.get('/gateway/status', (req, res) => {
     return res.status(200).json({
         status: 'Gateway is running',
         port: PORT,

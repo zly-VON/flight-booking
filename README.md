@@ -27,163 +27,373 @@
 * **Databases** - PostgreSQL
 * **Cache** - Redis
 * **API Gateway** - JavaScript
-* **Inter-service communication** - RESTful API / gRPC
+* **Inter-service communication** - RESTful API
 
-## Data Management
+## How to Run the Project
+### Prerequisites
+* Docker and Docker Compose installed
+* Clone the repository from GitHub:
+    ```
+    git clone <repo-url>
+    cd <repo-directory>
+    ```
+
+### Run with Docker Compose
+* Build and Start Containers
+    ```
+    docker-compose up --build
+    ```
+    This command builds and runs the containers for all services.
+
+### Docker Commands for Service Management
+* Check if Services are Runnin
+    ```
+    docker ps
+    ```
+
+* Stop and Remove Containers
+    ```
+    docker-compose down
+    ```
+
+## Data Models
+#### 1. User Table
+| Column   | Type    | Description                             |
+|----------|---------|-----------------------------------------|
+| id       | Integer | Unique identifier for the user         |
+| username | String  | Unique username for login               |
+| password | String  | User's password                         |
+| email    | String  | Unique email address                    |
+
+#### 2. Subscription Table
+| Column      | Type    | Description                                       |
+|-------------|---------|---------------------------------------------------|
+| id          | Integer | Unique identifier for the subscription            |
+| user_id     | Integer | Identifier for the user associated with the subscription |
+| flight_code | String  | Code of the subscribed flight                     |
+
+#### 3. Flight Table
+| Column       | Type    | Description                             |
+|--------------|---------|-----------------------------------------|
+| id           | Integer | Unique identifier for the flight       |
+| flight_code  | String  | Unique flight code                      |
+| airline      | String  | Name of the airline                     |
+| departure    | String  | Departure time                          |
+| arrival      | String  | Arrival time                            |
+| from_city    | String  | City of departure                       |
+| to_city      | String  | City of arrival                         |
+| price        | Integer | Price of the flight                     |
+| status       | String  | Current status of the flight            |
+
+#### 4. Booking Table
+| Column         | Type    | Description                                       |
+|----------------|---------|---------------------------------------------------|
+| id             | Integer | Unique identifier for the booking                 |
+| user_id        | Integer | Identifier for the user making the booking        |
+| flight_id      | Integer | Identifier for the booked flight                   |
+| status         | String  | Status of the booking                              |
+| payment_method | String  | Payment method used for the booking                |
+
+## API Endpoints Documentation
+#### Base URL
+`http://localhost:4000` - This is the root URL for all endpoints in the service.
+
+#### Status Endpoints 
+1. `GET /api/discovery/status` - Retrieves the service discovery status.
+    * Response
+        ```
+        {
+            "status": "Service Discovery is running",
+            "services": {
+                "user_service": [
+                    {
+                        "url": "http://flight-booking-user_service_1-1:5000",
+                        "instance": "user_service_1"
+                    },
+                    {
+                        "url": "http://flight-booking-user_service_3-1:5000",
+                        "instance": "user_service_3"
+                    },
+                    {
+                        "url": "http://flight-booking-user_service_2-1:5000",
+                        "instance": "user_service_2"
+                    }
+                ],
+                "booking_service": [
+                    {
+                        "url": "http://flight-booking-booking_service_2-1:5004",
+                        "instance": "booking_service_2"
+                    },
+                    {
+                        "url": "http://flight-booking-booking_service_1-1:5004",
+                        "instance": "booking_service_1"
+                    },
+                    {
+                        "url": "http://flight-booking-booking_service_3-1:5004",
+                        "instance": "booking_service_3"
+                    }
+                ]
+            }
+        }
+        ```
+2. `GET /api/gateway/status` - Retrieves the gateway health status.
+    * Response
+        ```
+        {
+            "status": "Gateway is running",
+            "port": 4000,
+            "uptime": 482.399700277
+        }
+        ```
+
+#### Database Seeding - Run at Start
+1. `GET /seed` - Seeds the database with default flight data if no flights exist.
+    * Response:
+        ```
+        {
+            "message": "Default flight data added."
+        }
+        ```
+        `201 Created` - Database seeded with default flight data.
+        `200 OK` - Flight data already exists.
 
 #### User/Notification Service
-1. POST /register - Register a new user.
-    * Request
-    ```
-    {
-        "username": "username",
-        "password": "password123",
-        "email": "username@example.com"
-    }
-    ```
+1. `POST /api/auth/register` - Register a new user.
+    * Request(JSON)
+        ```
+        {
+            "username": "johndoe",
+            "password": "securepassword123",
+            "email": "johndoe@example.com"
+        }
+        ```
     * Response
-    ```
-    {
-        "message": "User registered successfully",
-        "userId": "abc123"
-    }
-    ```
-2. POST /login - User login and authentication.
-    * Request
-    ```
-    {
-        "username": "username",
-        "password": "password123"
-    }
-    ```
+        * Success (201 Created):
+        ```
+        {
+            "message": "User registered successfully",
+            "userId": 1
+        }
+        ```
+        * Error (400 Bad Request):
+        ```
+        {
+            "message": "Username or Email already exists"
+        }
+        ```
+2. `POST /api/auth/login` - User login and authentication.
+    * Request(JSON)
+        ```
+        {
+            "username": "johndoe",
+            "password": "securepassword123"
+        }
+        ```
     * Response
-    ```
-    {
-        "message": "Login successful",
-        "userId": "abc123",
-        "token": "jwt_token"
-    }
-    ```
-3. POST /subscribe-flight - Subscribe a user to real-time flight updates.
-    * Request
-    ```
-    {
-        "userId": "abc123",
-        "flightId": "FL12345"
-    }
-    ```
+        * Success (200 OK):
+        ```
+        {
+            "message": "Login successful",
+            "userId": 1,
+            "token": "<JWT token>"
+        }
+        ```
+        * Error (401 Unauthorized):
+        ```
+        {
+            "message": "Invalid username or password"
+        }
+        ```
+3. `GET /api/auth/user-subscriptions/{int:user_id}` - Gets a list of all flight subscriptions for a user.
     * Response
-    ```
-    {
-        "message": "Subscribed to flight updates for FL12345"
-    }
-    ```
-4. WebSocket /ws/flight-updates - WebSocket connection to receive real-time flight updates.
-    * Request
-    ```
-    {
-        "userId": "abc123",
-        "flightId": "FL12345"
-    }
-    ```
+        * Success (200 OK):
+        ```
+        {
+            "userId": 1,
+            "flights": ["FL001", "FL002"]
+        }
+        ```
+
+#### Flight Updates Subscription - WebSocket
+1. `subscribe` - Allows an authenticated user to subscribe to flight updates.
+    * Header
+        `Authorization: Bearer \<token>`
+    * Data (JSON)
+        ```
+        {
+            "flight_code": "FL001"
+        }
+        ```
     * Response
-    ```
-    {
-        "flightId": "FL12345",
-        "status": "Delayed",
-        "delayDuration": "1 hour",
-        "reason": "Technical issue"
-    }
-    ```
-5. GET /user-flights/{userId} - Get all flights a user is subscribed to.
+        ```
+        {
+            "message": "Subscribed to flight updates for FL001"
+        }
+        ```
+2. `connect-room` - Connects a user to a specific WebSocket room for a flight's updates.
+    * Header
+        `Authorization: Bearer \<token>`
+    * Data (JSON)
+        ```
+        {
+            "flight_code": "FL001"
+        }
+        ```
     * Response
-    ```
-    {
-        "userId": "abc123",
-        "flights": [
-            "FL12345",
-            "FL67890"
-        ]
-    }
-    ```
+        ```
+        {
+            "message": "Connected to room flight_updates_FL001 for flight updates."
+        }
+        ```
+3. `unsubscribe` - Allows an authenticated user to unsubscribe from flight updates.
+    * Header
+        `Authorization: Bearer \<token>`
+    * Data (JSON)
+        ```
+        {
+            "flight_code": "FL001"
+        }
+        ```
+    * Response
+        ```
+        {
+            "message": "Unsubscribed from flight updates for FL001"
+        }
+        ```
+4. `disconnect-room` - Disconnects an authenticated user from a specific flight update room.
+    * Header
+        `Authorization: Bearer \<token>`
+    * Data (JSON)
+        ```
+        {
+            "flight_code": "FL001"
+        }
+        ```
+    * Response
+        ```
+        {
+            "message": "Disconnected from room flight_updates_FL001."
+        }
+        ```
+5. `broadcast_update` - DBroadcasts an update to all users in a flight's WebSocket room.
+    * Header
+        `Authorization: Bearer \<token>`
+    * Data (JSON)
+        ```
+        {
+            "flight_code": "FL001",
+            "update": "Flight is now boarding"
+        }
+        ```
+    * Response
+        Broadcasts the update to all users in the specified room.
+        ```
+        {
+            "update": "Flight is now boarding"
+        }
+        ```
+
 #### Flight Booking Service
-1. GET /search-flights - Search available flights based on criteria.
-    * Request
-    ```
-    {
-        "from": "City M",
-        "to": "City L",
-        "date": "2024-09-10"
-    }
-    ```
+1. GET /api/flight/search-flights - Search available flights based on criteria.
+    * Query Parameters:
+        * `from` (string, required): Departure city.
+        * `to` (string, required): Arrival city.
     * Response
-    ```
-    {
-        "flights": [
-            {
-                "flightId": "FL12345",
-                "airline": "Airline 22",
-                "departure": "2024-09-10T12:30:00Z",
-                "arrival": "2024-09-10T15:45:00Z",
-                "price": 350
-            },
-            {
-                "flightId": "FL67890",
-                "airline": "Airline KJ",
-                "departure": "2024-09-10T14:00:00Z",
-                "arrival": "2024-09-10T17:15:00Z",
-                "price": 370
-            }
-        ]
-    }
-    ```
-2. POST /book-flight - Book a flight for a user.
-    * Request
-    ```
-    {
-        "userId": "abc123",
-        "flightId": "FL12345",
-        "paymentMethod": "credit_card",
-    }
-    ```
+        * Success (200 OK):
+        ```
+        {
+            "flights": [
+                {
+                    "flightCode": "FL001",
+                    "airline": "WizzAir",
+                    "departure": "2024-10-01 10:00",
+                    "arrival": "2024-10-01 12:00",
+                    "price": 200,
+                    "status": "On Time"
+                }
+            ]
+        }
+        ```
+        * Error (404 Not Found):
+        ```
+        {
+            "message": "No flights found"
+        }
+        ```
+2. POST /api/flight/book-flight - Book a flight for a user.
+    * Header
+        `Authorization: Bearer \<token>`
+    * Request(JSON)
+        ```
+        {
+            "flightId": "FL001",
+            "paymentMethod": "credit_card"
+        }
+        ```
     * Response
-    ```
-    {
-        "message": "Flight booked successfully",
-        "bookingId": "bkg56789",
-        "flightId": "FL12345",
-        "price": 350
-    }
-    ```
-3. GET /bookings/{userId} - Retrieve a user's bookings.
+        * Success (201 Created):
+        ```
+        {
+            "message": "Flight booked successfully",
+            "bookingId": 1,
+            "flightId": "FL001",
+            "price": 200
+        }
+        ```
+        * Error (404 Not Found):
+        ```{
+            "message": "Flight not found"
+        }
+        ```
+3. GET /api/flight/bookings/{int:user_id>} - Retrieve a user's bookings.
+    * Header
+        `Authorization: Bearer \<token>`
     * Response
-    ```
-    {
-        "userId": "abc123",
-        "bookings": [
-            {
-            "bookingId": "bkg56789",
-            "flightId": "FL12345",
-            "status": "Confirmed",
-            "departure": "2024-09-10T12:30:00Z"
-            }
-        ]
-    }
-    ```
-4. POST /cancel-booking - Cancel a flight booking.
-    * Request
-    ```
-    {
-        "userId": "abc123",
-        "bookingId": "bkg56789"
-    }
-    ```
+        * Success (200 OK):
+        ```{
+            "userId": 1,
+            "bookings": [
+                {
+                    "bookingId": 1,
+                    "flightCode": "FL001",
+                    "bookingStatus": "Confirmed",
+                    "departure": "2024-10-01 10:00",
+                    "flightStatus": "On Time"
+                }
+            ]
+        }
+        ```
+        * Error (404 Not Found):
+        ```{
+            "message": "No bookings found for this user"
+        }
+        ```
+4. DEL /api/flight/cancel-booking/{int:booking_id>} - Cancel a flight booking.
+    * Header
+        `Authorization: Bearer \<token>`
     * Response
-    ```
-    {
-        "message": "Booking canceled successfully"
-    }
-    ```
+        * Success (200 OK):
+        ```
+        {
+            "message": "Booking canceled successfully"
+        }
+        ```
+        * Error (404 Not Found):
+        ```
+        {
+            "message": "Booking not found"
+        }
+        ```
+
+#### Testing Endpoint
+1. `GET /api/auth/simulate-failure` - This endpoint is used to simulate a failure. It is primarily for testing the circuit breaker.
+    * Response
+        * When the circuit breaker is active and blocking requests:
+        ```
+        {
+            "message": "user_service_1 is temporarily unavailable due to failures."
+        }
+        ```
 
 ## Deployment and Scaling
 For deployment I'll use *Docker* to containerize each microservice, ensuring they run independently with their own dependencies. I will also use *Docker Compose* to manage all services together and *horizontal scaling* ( a Docker Compose’s scaling feature) to allow multiple instances of a service to handle increased traffic efficiently. 

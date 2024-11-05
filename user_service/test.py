@@ -14,10 +14,16 @@ def app():
     with app.app_context():
         db.session.execute(text("DELETE FROM users;"))
         db.session.execute(text("DELETE FROM subscriptions;"))
+        db.session.execute(text("ALTER SEQUENCE users_id_seq RESTART WITH 1;"))
+        db.session.execute(text("ALTER SEQUENCE subscriptions_id_seq RESTART WITH 1;"))
+
         db.session.commit()
         yield app
         db.session.execute(text("DELETE FROM users;"))
         db.session.execute(text("DELETE FROM subscriptions;"))
+        db.session.execute(text("ALTER SEQUENCE users_id_seq RESTART WITH 1;"))
+        db.session.execute(text("ALTER SEQUENCE subscriptions_id_seq RESTART WITH 1;"))
+
         db.session.commit()
 
 @pytest.fixture

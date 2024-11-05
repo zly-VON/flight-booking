@@ -1,23 +1,69 @@
 const express = require('express');
 const router = express.Router();
+const Docker = require('dockerode');
 
+const docker = new Docker();
 const services = {};
 
-const registerService = (serviceName, serviceUrl) => {
-    if (!serviceName || !serviceUrl) {
-        console.error('Service name and URL are required for registration.');
+
+const registerService = (serviceType, serviceUrl, instanceName) => {
+    if (!serviceType || !serviceUrl || !instanceName) {
+        console.error('Service type, URL, and instance name are required for registration.');
         return;
     }
-    
-    if (!services[serviceName]) {
-        services[serviceName] = [];
+
+    if (!services[serviceType]) {
+        services[serviceType] = [];
     }
 
-    const instanceName = serviceUrl.split('/')[2].split(':')[0];
-    services[serviceName].push({ url: serviceUrl, instance: instanceName });
+    services[serviceType].push({ url: serviceUrl, instance: instanceName });
 
-    console.log(`Service registered: ${serviceName} at ${serviceUrl} (Instance: ${instanceName})`);
+    console.log(`Service registered: ${serviceType} at ${serviceUrl} (Instance: ${instanceName})`);
 };
+
+const discoverServices = async () => {
+    try {
+        const containers = await docker.listContainers({ all: true });
+
+        for (const service in services) {
+            services[service] = [];
+        }
+
+        for (const container of containers) {
+            const labels = container.Labels;
+            const containerName = container.Names[0].substring(1); 
+            
+            const privatePort = container.Ports ? container.Ports[0]?.PrivatePort : null;
+    
+            if (labels['service_type'] === 'user_service') {
+                registerService('user_service', `http://${containerName}:${privatePort}`, labels['instance']);
+            }
+
+            if (labels['service_type'] === 'booking_service') {
+                registerService('booking_service', `http://${containerName}:${privatePort}`, labels['instance']);
+            }
+            
+        }
+    } catch (error) {
+        console.error('Error discovering services:', error);
+    }
+};
+
+
+const listNetworks = async () => {
+    try {
+        const networks = await docker.listNetworks();
+        networks.forEach(network => {
+            console.log('Network name:', network.Name);
+        });
+    } catch (error) {
+        console.error('Error fetching networks:', error);
+    }
+};
+
+listNetworks();
+setInterval(discoverServices, 10000);
+discoverServices(); 
 
 router.get('/services', (req, res) => {
     return res.status(200).json(services);
@@ -27,13 +73,13 @@ router.get('/status', (req, res) => {
     return res.status(200).json({ status: 'Service Discovery is running', services });
 });
 
-registerService('user_service', 'http://user_service_1:5000');
-registerService('user_service', 'http://user_service_2:5000');
-registerService('user_service', 'http://user_service_3:5000');
+// registerService('user_service', 'http://user_service_1:5000');
+// registerService('user_service', 'http://user_service_2:5000');
+// registerService('user_service', 'http://user_service_3:5000');
 
-registerService('booking_service', 'http://booking_service_1:5004');
-registerService('booking_service', 'http://booking_service_2:5004');
-registerService('booking_service', 'http://booking_service_3:5004');
+// registerService('booking_service', 'http://booking_service_1:5004');
+// registerService('booking_service', 'http://booking_service_2:5004');
+// registerService('booking_service', 'http://booking_service_3:5004');
 
 
 const serviceIndices = {

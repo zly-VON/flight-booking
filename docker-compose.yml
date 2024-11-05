@@ -1,3 +1,132 @@
+# services:
+#   gateway:
+#     build: ./gateway
+#     ports:
+#       - "4000:4000"
+#     depends_on:
+#       - user_service_1
+#       - user_service_2
+#       - user_service_3
+#       - booking_service_1
+#       - booking_service_2
+#       - booking_service_3
+#     networks:
+#       - flights-network
+
+#   user_service_1:
+#     build:
+#       context: ./user_service
+#     ports:
+#       - "5000:5000"
+#     depends_on:
+#       - user_db
+#     networks:
+#       - flights-network
+
+#   user_service_2:
+#     build:
+#       context: ./user_service
+#     ports:
+#       - "5001:5000"
+#     depends_on:
+#       - user_db
+#     networks:
+#       - flights-network
+
+#   user_service_3:
+#     build:
+#       context: ./user_service
+#     ports:
+#       - "5002:5000"
+#     depends_on:
+#       - user_db
+#     networks:
+#       - flights-network
+
+#   user_db:
+#     image: postgres:17
+#     environment:
+#       POSTGRES_USER: admin
+#       POSTGRES_PASSWORD: password
+#       POSTGRES_DB: user_db
+#     volumes:
+#       - user_db_data:/var/lib/postgresql/data
+#       - ./user_db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+#     ports:
+#       - "5432:5432"
+#     networks:
+#       - flights-network
+
+#   booking_service_1:
+#     build:
+#       context: ./booking_service
+#     ports:
+#       - "5004:5000"
+#     depends_on:
+#       - flight_db
+#     networks:
+#       - flights-network
+
+#   booking_service_2:
+#     build:
+#       context: ./booking_service
+#     ports:
+#       - "5005:5000"
+#     depends_on:
+#       - flight_db
+#     networks:
+#       - flights-network
+
+#   booking_service_3:
+#     build:
+#       context: ./booking_service
+#     ports:
+#       - "5006:5000"
+#     depends_on:
+#       - flight_db
+#     networks:
+#       - flights-network
+
+#   flight_db:
+#     image: mysql:8
+#     environment:
+#       MYSQL_ROOT_PASSWORD: milena
+#       MYSQL_DATABASE: flight_db
+#       MYSQL_USER: admin
+#       MYSQL_PASSWORD: password
+#     volumes:
+#       - flight_db_data:/var/lib/mysql
+#       - ./flight_db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+#     ports:
+#       - "3307:3306"
+#     networks:
+#       - flights-network
+
+#   redis:
+#     image: redis:latest
+#     ports:
+#       - "6379:6379"
+#     networks:
+#       - flights-network
+
+#   test:
+#     build:
+#       context: ./user_service
+#     command: ["pytest", "-v", "test.py"]
+#     depends_on:
+#       - user_db
+#       - redis
+#     networks:
+#       - flights-network
+
+# networks:
+#   flights-network:
+#     driver: bridge
+
+# volumes:
+#   user_db_data:
+#   flight_db_data:
+
 services:
   gateway:
     build: ./gateway
@@ -12,6 +141,10 @@ services:
       - booking_service_3
     networks:
       - flights-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      service_type: gateway
 
   user_service_1:
     build:
@@ -22,6 +155,9 @@ services:
       - user_db
     networks:
       - flights-network
+    labels:
+      service_type: user_service
+      instance: user_service_1
 
   user_service_2:
     build:
@@ -32,6 +168,9 @@ services:
       - user_db
     networks:
       - flights-network
+    labels:
+      service_type: user_service
+      instance: user_service_2
 
   user_service_3:
     build:
@@ -42,6 +181,9 @@ services:
       - user_db
     networks:
       - flights-network
+    labels:
+      service_type: user_service
+      instance: user_service_3
 
   user_db:
     image: postgres:17
@@ -56,36 +198,47 @@ services:
       - "5432:5432"
     networks:
       - flights-network
+    labels:
+      service_type: user_db
 
   booking_service_1:
     build:
       context: ./booking_service
     ports:
-      - "5004:5000"
+      - "5004:5004"
     depends_on:
       - flight_db
     networks:
       - flights-network
+    labels:
+      service_type: booking_service
+      instance: booking_service_1
 
   booking_service_2:
     build:
       context: ./booking_service
     ports:
-      - "5005:5000"
+      - "5005:5004"
     depends_on:
       - flight_db
     networks:
       - flights-network
+    labels:
+      service_type: booking_service
+      instance: booking_service_2
 
   booking_service_3:
     build:
       context: ./booking_service
     ports:
-      - "5006:5000"
+      - "5006:5004"
     depends_on:
       - flight_db
     networks:
       - flights-network
+    labels:
+      service_type: booking_service
+      instance: booking_service_3
 
   flight_db:
     image: mysql:8
@@ -101,6 +254,8 @@ services:
       - "3307:3306"
     networks:
       - flights-network
+    labels:
+      service_type: flight_db
 
   redis:
     image: redis:latest
@@ -108,6 +263,8 @@ services:
       - "6379:6379"
     networks:
       - flights-network
+    labels:
+      service_type: redis
 
   test:
     build:
@@ -118,6 +275,8 @@ services:
       - redis
     networks:
       - flights-network
+    labels:
+      service_type: test
 
 networks:
   flights-network:
@@ -126,4 +285,3 @@ networks:
 volumes:
   user_db_data:
   flight_db_data:
-  flight_test_db_data:
