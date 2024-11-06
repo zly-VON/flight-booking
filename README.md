@@ -8,7 +8,7 @@
 
 ## Service Boundaries
 #### Architecture Diagram
-![Architecture](./architecture.png)
+![Architecture](./architecture_v2.png)
 
 #### Key Components
 * User: The end-user interacts with the system through an API Gateway.
@@ -21,6 +21,12 @@
     * Book Flight: Processes flight bookings and updates the database.
 * Load Balancer: Distributes incoming network traffic across multiple instances of a service to ensure no single instance is overwhelmed.
 * Service Discovery: Helps services dynamically find and communicate with each other in a system.
+
+##### New Features
+* Redis Cluster: Provides caching for frequently accessed data.
+* ELK Stack: Logs from all services are centralized here, enabling efficient logging and monitoring.
+* Database Redundancy/Replication + Failover: User DB has a replication setup with two additional instances each, supporting high availability and failover to maintain service continuity in case of primary database failure.
+* Data Warehouse and ETL: The ETL Service periodically extracts, transforms, and loads data into a Data Warehouse.
 
 ## Technology Stack and Communication Patterns
 * **Services** - Python 
@@ -60,22 +66,22 @@
 #### 1. User Table
 | Column   | Type    | Description                             |
 |----------|---------|-----------------------------------------|
-| id       | Integer | Unique identifier for the user         |
+| id       | Integer | Unique identifier for the user          |
 | username | String  | Unique username for login               |
 | password | String  | User's password                         |
 | email    | String  | Unique email address                    |
 
 #### 2. Subscription Table
-| Column      | Type    | Description                                       |
-|-------------|---------|---------------------------------------------------|
-| id          | Integer | Unique identifier for the subscription            |
+| Column      | Type    | Description                                              |
+|-------------|---------|----------------------------------------------------------|
+| id          | Integer | Unique identifier for the subscription                   |
 | user_id     | Integer | Identifier for the user associated with the subscription |
-| flight_code | String  | Code of the subscribed flight                     |
+| flight_code | String  | Code of the subscribed flight                            |
 
 #### 3. Flight Table
 | Column       | Type    | Description                             |
 |--------------|---------|-----------------------------------------|
-| id           | Integer | Unique identifier for the flight       |
+| id           | Integer | Unique identifier for the flight        |
 | flight_code  | String  | Unique flight code                      |
 | airline      | String  | Name of the airline                     |
 | departure    | String  | Departure time                          |
@@ -86,10 +92,10 @@
 | status       | String  | Current status of the flight            |
 
 #### 4. Booking Table
-| Column         | Type    | Description                                       |
-|----------------|---------|---------------------------------------------------|
-| id             | Integer | Unique identifier for the booking                 |
-| user_id        | Integer | Identifier for the user making the booking        |
+| Column         | Type    | Description                                        |
+|----------------|---------|----------------------------------------------------|
+| id             | Integer | Unique identifier for the booking                  |
+| user_id        | Integer | Identifier for the user making the booking         |
 | flight_id      | Integer | Identifier for the booked flight                   |
 | status         | String  | Status of the booking                              |
 | payment_method | String  | Payment method used for the booking                |
