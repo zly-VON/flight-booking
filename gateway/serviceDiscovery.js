@@ -18,7 +18,7 @@ const registerService = (serviceType, serviceUrl, instanceName) => {
 
     services[serviceType].push({ url: serviceUrl, instance: instanceName });
 
-    console.log(`Service registered: ${serviceType} at ${serviceUrl} (Instance: ${instanceName})`);
+    // console.log(`Service registered: ${serviceType} at ${serviceUrl} (Instance: ${instanceName})`);
 };
 
 const discoverServices = async () => {
@@ -72,15 +72,6 @@ router.get('/services', (req, res) => {
 router.get('/status', (req, res) => {
     return res.status(200).json({ status: 'Service Discovery is running', services });
 });
-
-// registerService('user_service', 'http://user_service_1:5000');
-// registerService('user_service', 'http://user_service_2:5000');
-// registerService('user_service', 'http://user_service_3:5000');
-
-// registerService('booking_service', 'http://booking_service_1:5004');
-// registerService('booking_service', 'http://booking_service_2:5004');
-// registerService('booking_service', 'http://booking_service_3:5004');
-
 
 const serviceIndices = {
     'user_service': 0,

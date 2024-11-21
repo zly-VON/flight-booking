@@ -177,8 +177,12 @@ def handle_flight_update(data):
         emit('flight_update', {'update': update}, room=room)
     else:
         emit('flight_update', {'message': 'Flight code or update is missing'})
-
+        
 
 @app.route('/simulate-failure', methods=['GET'])
 def simulate_failure():
-    raise Exception("Simulated failure for testing purposes.")
+    try:
+        raise Exception("Simulated failure for testing purposes.")
+    except Exception as e:
+        app.logger.error(f"Simulated failure: {str(e)}")
+        return {"message": "An error occurred. Please try again later."}, 500

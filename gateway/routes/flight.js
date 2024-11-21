@@ -1,15 +1,14 @@
 const axios = require('axios');
 const express = require('express');
 const router = express.Router();
-const { getNextServiceUrl } = require('../serviceDiscovery');
 const { withCircuitBreaker } = require('../circuitBreaker');
 
+const serviceName = 'booking_service';
+
 router.get('/seed', async (req, res) => {
-    const serviceName = 'booking_service';
     try {
-        const { instanceName, url: SERVICE_2_URL } = getNextServiceUrl(serviceName);
-        const response = await withCircuitBreaker(instanceName, async () => {
-            return await axios.get(`${SERVICE_2_URL}/seed`)
+        const response = await withCircuitBreaker(serviceName, async (url) => {
+            return await axios.get(`${url}/seed`);
         });
 
         res.status(response.status).json(response.data);
@@ -19,11 +18,9 @@ router.get('/seed', async (req, res) => {
 });
 
 router.get('/home', async (req, res) => {
-    const serviceName = 'booking_service';
     try {
-        const { instanceName, url: SERVICE_2_URL } = getNextServiceUrl(serviceName);
-        const response = await withCircuitBreaker(instanceName, async () => {
-            return await axios.get(`${SERVICE_2_URL}/`);
+        const response = await withCircuitBreaker(serviceName, async (url) => {
+            return await axios.get(`${url}/`);
         });
         res.status(response.status).json(response.data);
     } catch (error) {
@@ -33,13 +30,10 @@ router.get('/home', async (req, res) => {
 });
 
 router.get('/search-flights', async (req, res) => {
-    const serviceName = 'booking_service';
     try {
         const {from, to} = req.query;
-
-        const { instanceName, url: SERVICE_2_URL } = getNextServiceUrl(serviceName);
-        const response = await withCircuitBreaker(instanceName, async () => {
-            return await axios.get(`${SERVICE_2_URL}/search-flights`, {
+        const response = await withCircuitBreaker(serviceName, async (url) => {
+            return await axios.get(`${url}/search-flights`, {
                 params: {from, to}});
         });
 
@@ -50,11 +44,9 @@ router.get('/search-flights', async (req, res) => {
 });
 
 router.post('/book-flight', async (req, res) => {
-    const serviceName = 'booking_service';
     try {
-        const { instanceName, url: SERVICE_2_URL } = getNextServiceUrl(serviceName);
-        const response = await withCircuitBreaker(instanceName, async () => {
-            return await axios.post(`${SERVICE_2_URL}/book-flight`, req.body, {
+        const response = await withCircuitBreaker(serviceName, async (url) => {
+            return await axios.post(`${url}/book-flight`, req.body, {
                 headers: { Authorization: req.headers.authorization }});
         });
 
@@ -65,12 +57,10 @@ router.post('/book-flight', async (req, res) => {
 });
 
 router.get('/bookings/:userId', async (req, res) => {
-    const serviceName = 'booking_service';
     try {
         const id = req.params.userId; 
-        const { instanceName, url: SERVICE_2_URL } = getNextServiceUrl(serviceName);
-        const response = await withCircuitBreaker(instanceName, async () => {
-            return await axios.get(`${SERVICE_2_URL}/bookings/${id}`, {
+        const response = await withCircuitBreaker(serviceName, async (url) => {
+            return await axios.get(`${url}/bookings/${id}`, {
                 headers: { Authorization: req.headers.authorization }});
         });
 
@@ -81,27 +71,11 @@ router.get('/bookings/:userId', async (req, res) => {
 });
 
 router.delete('/cancel-booking/:bookingId', async (req, res) => {
-    const serviceName = 'booking_service';
     try {
-        const id = req.params.bookingId; 
-        const { instanceName, url: SERVICE_2_URL } = getNextServiceUrl(serviceName);
-        const response = await withCircuitBreaker(instanceName, async () => {
-            return await axios.delete(`${SERVICE_2_URL}/cancel-booking/${id}`, {
+        const id = req.params.bookingId;
+        const response = await withCircuitBreaker(serviceName, async (url) => {
+            return await axios.delete(`${url}/cancel-booking/${id}`, {
                 headers: { Authorization: req.headers.authorization }});
-        });
-
-        res.status(response.status).json(response.data);
-    } catch (error) {
-        res.status(error.response?.status || 500).send(error.response?.data || { message: 'Server error' });
-    }
-});
-
-router.post('/seed', async (req, res) => {
-    const serviceName = 'booking_service';
-    try {
-        const { instanceName, url: SERVICE_2_URL } = getNextServiceUrl(serviceName);
-        const response = await withCircuitBreaker(instanceName, async () => {
-            return await axios.post(`${SERVICE_2_URL}/seed`);
         });
 
         res.status(response.status).json(response.data);
