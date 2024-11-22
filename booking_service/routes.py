@@ -85,7 +85,6 @@ def book_flight():
     }), 201
 
 @app.route('/bookings/<int:user_id>', methods=['GET'])
-@jwt_required()
 def get_user_bookings(user_id):
     bookings = Booking.query.filter_by(user_id=user_id).all()
     

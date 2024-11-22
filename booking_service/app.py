@@ -4,6 +4,7 @@ from models import db
 from redis import Redis
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from prometheus_flask_exporter import PrometheusMetrics
 
 
 def create_app():
@@ -19,7 +20,7 @@ def create_app():
 
     limiter = Limiter(
         get_remote_address,
-        default_limits=["5 per minute"]
+        default_limits=["15 per minute"]
     )
     limiter.init_app(app)
 
@@ -32,6 +33,7 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
+    metrics = PrometheusMetrics(app)
 
     import routes
 

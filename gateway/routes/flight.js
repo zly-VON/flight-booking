@@ -31,10 +31,11 @@ router.get('/home', async (req, res) => {
 
 router.get('/search-flights', async (req, res) => {
     try {
-        const {from, to} = req.query;
+        const { from, to } = req.query;
         const response = await withCircuitBreaker(serviceName, async (url) => {
             return await axios.get(`${url}/search-flights`, {
-                params: {from, to}});
+                params: { from, to }
+            });
         });
 
         res.status(response.status).json(response.data);
@@ -47,7 +48,8 @@ router.post('/book-flight', async (req, res) => {
     try {
         const response = await withCircuitBreaker(serviceName, async (url) => {
             return await axios.post(`${url}/book-flight`, req.body, {
-                headers: { Authorization: req.headers.authorization }});
+                headers: { Authorization: req.headers.authorization }
+            });
         });
 
         res.status(response.status).json(response.data);
@@ -58,10 +60,9 @@ router.post('/book-flight', async (req, res) => {
 
 router.get('/bookings/:userId', async (req, res) => {
     try {
-        const id = req.params.userId; 
+        const id = req.params.userId;
         const response = await withCircuitBreaker(serviceName, async (url) => {
-            return await axios.get(`${url}/bookings/${id}`, {
-                headers: { Authorization: req.headers.authorization }});
+            return await axios.get(`${url}/bookings/${id}`);
         });
 
         res.status(response.status).json(response.data);
@@ -75,7 +76,8 @@ router.delete('/cancel-booking/:bookingId', async (req, res) => {
         const id = req.params.bookingId;
         const response = await withCircuitBreaker(serviceName, async (url) => {
             return await axios.delete(`${url}/cancel-booking/${id}`, {
-                headers: { Authorization: req.headers.authorization }});
+                headers: { Authorization: req.headers.authorization }
+            });
         });
 
         res.status(response.status).json(response.data);

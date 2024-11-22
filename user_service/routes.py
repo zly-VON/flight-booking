@@ -4,75 +4,172 @@ from models import User, Subscription
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_socketio import emit, join_room, leave_room
-# import eventlet
 
-# @app.route('/register', methods=['POST'])
-# def register():
-#     data = request.get_json()
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
     
-#     if not data or not data.get('username') or not data.get('password') or not data.get('email'):
-#         return jsonify({"message": "Missing username, password, or email"}), 400
+    if not data or not data.get('username') or not data.get('password') or not data.get('email'):
+        return jsonify({"message": "Missing username, password, or email"}), 400
     
-#     if User.query.filter_by(username=data['username']).first() or User.query.filter_by(email=data['email']).first():
-#         return jsonify({"message": "Username or Email already exists"}), 400
+    if User.query.filter_by(username=data['username']).first() or User.query.filter_by(email=data['email']).first():
+        return jsonify({"message": "Username or Email already exists"}), 400
 
-#     hashed_password = generate_password_hash(data['password'])
+    hashed_password = generate_password_hash(data['password'])
 
-#     new_user = User(
-#         username=data['username'],
-#         password=hashed_password,
-#         email=data['email']
-#     )
+    new_user = User(
+        username=data['username'],
+        password=hashed_password,
+        email=data['email']
+    )
 
-#     db.session.add(new_user)
-#     db.session.commit()
+    db.session.add(new_user)
+    db.session.commit()
 
-#     return jsonify({
-#         "message": "User registered successfully",
-#         "userId": new_user.id
-#     }), 201
+    return jsonify({
+        "message": "User registered successfully",
+        "userId": new_user.id
+    }), 201
 
 
-# @app.route('/login', methods=['POST'])
-# def login():
-#     data = request.get_json()
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
 
-#     if not data or not data.get('username') or not data.get('password'):
-#         return jsonify({"message": "Missing username or password"}), 400
+    if not data or not data.get('username') or not data.get('password'):
+        return jsonify({"message": "Missing username or password"}), 400
 
-#     user = User.query.filter_by(username=data['username']).first()
+    user = User.query.filter_by(username=data['username']).first()
     
-#     if user and check_password_hash(user.password, data['password']):
-#         access_token = create_access_token(identity=user.id)
-#         return jsonify({
-#             "message": "Login successful",
-#             "userId": user.id,
-#             "token": access_token
-#         }), 200
-#     else:
-#         return jsonify({"message": "Invalid username or password"}), 401
+    if user and check_password_hash(user.password, data['password']):
+        access_token = create_access_token(identity=user.id)
+        return jsonify({
+            "message": "Login successful",
+            "userId": user.id,
+            "token": access_token
+        }), 200
+    else:
+        return jsonify({"message": "Invalid username or password"}), 401
 
 
-# @app.route('/user-subscriptions/<int:user_id>', methods=['GET'])
-# def get_user_flights(user_id):
-#     subscriptions = Subscription.query.filter_by(user_id=user_id).all()
-#     flights = [subscription.flight_code for subscription in subscriptions]
+@app.route('/user-subscriptions/<int:user_id>', methods=['GET'])
+def get_user_flights(user_id):
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+    
+    subscriptions = Subscription.query.filter_by(user_id=user_id).all()
+    flights = [subscription.flight_code for subscription in subscriptions]
 
-#     return jsonify({
-#         "userId": user_id,
-#         "flights": flights
-#     })
+    return jsonify({
+        "userId": user_id,
+        "flights": flights
+    })
+
+@app.route('/update-credit/<int:user_id>', methods=['PATCH'])
+def update_user_credit(user_id):
+    data = request.get_json()
+
+    if 'credit' not in data:
+        return jsonify({"message": "Credit amount is required"}), 400
+
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    user.credit = data['credit']
+
+    try:
+        db.session.commit()
+        return jsonify({"message": f"Credit of {user.username} updated successfully", "credit": user.credit}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "Error updating credit", "error": str(e)}), 500
+
+
+@app.route('/profile/<int:user_id>', methods=['GET'])
+def get_user_info(user_id):
+
+    user = User.query.get(user_id)
+    
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    subscriptions = Subscription.query.filter_by(user_id=user.id).all()
+    flight_codes = [subscription.flight_code for subscription in subscriptions]
+    
+    user_data = {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "credit": user.credit,
+        "subscriptions": flight_codes
+    }
+    
+    return jsonify(user_data), 200
+
+@app.route('/deduct-credits/<int:user_id>', methods=['PATCH'])
+def deduct_user_credits(user_id):
+    data = request.get_json()
+
+    if 'credit' not in data:
+        return jsonify({"message": "Credit amount is required to deduct"}), 400
+
+    try:
+        credit_to_deduct = int(data['credit'])
+    except ValueError:
+        return jsonify({"message": "Invalid credit amount provided"}), 400
+
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    if user.credit < credit_to_deduct:
+        return jsonify({"message": "Insufficient credits"}), 400
+
+    user.credit -= credit_to_deduct
+
+    try:
+        db.session.commit()
+        return jsonify({"message": f"{credit_to_deduct} credits deducted from {user.username}", "credit": user.credit}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "Error deducting credits", "error": str(e)}), 500
+
+
+@app.route('/refund-credits/<int:user_id>', methods=['PATCH'])
+def refund_user_credits(user_id):
+    data = request.get_json()
+
+    if 'credit' not in data:
+        return jsonify({"message": "Credit amount is required to refund"}), 400
+
+    try:
+        credit_to_refund = int(data['credit'])
+    except ValueError:
+        return jsonify({"message": "Invalid credit amount provided"}), 400
+
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    user.credit += credit_to_refund
+
+    try:
+        db.session.commit()
+        return jsonify({"message": f"{credit_to_refund} credits refunded to {user.username}", "credit": user.credit}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "Error refunding credits", "error": str(e)}), 500
+
 
 
 @socketio.on('connect')
 def handle_connect():
     print("Client connected")
-
-
-# # WebSocket handlers
-# @socketio.on('connect')
-# def handle_connect():
-#     print("Client connected, boob")
 
 
 @socketio.on('disconnect')

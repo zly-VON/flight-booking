@@ -24,7 +24,7 @@
 
 ##### New Features
 * Redis Cluster: Provides caching for frequently accessed data.
-* ELK Stack: Logs from all services are centralized here, enabling efficient logging and monitoring.
+* Prometheus and Grafana: Metrics from all services are centralized here, enabling efficient monitoring, visualization, and alerting.
 * Database Redundancy/Replication + Failover: User DB has a replication setup with two additional instances each, supporting high availability and failover to maintain service continuity in case of primary database failure.
 * Data Warehouse and ETL: The ETL Service periodically extracts, transforms, and loads data into a Data Warehouse.
 

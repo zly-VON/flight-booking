@@ -63,7 +63,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: user_db
     volumes:
-      - user_db_data:/var/lib/postgresql/data
+      # - user_db_data:/var/lib/postgresql/data
       - ./user_db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     ports:
       - "5432:5432"
@@ -119,7 +119,7 @@ services:
       MYSQL_USER: admin
       MYSQL_PASSWORD: password
     volumes:
-      - flight_db_data:/var/lib/mysql
+      # - flight_db_data:/var/lib/mysql
       - ./flight_db/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     ports:
       - "3307:3306"
@@ -173,7 +173,9 @@ services:
     image: grafana/grafana
     container_name: grafana
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: 'admin'  # Set your Grafana admin password
+      - GF_LOG_LEVEL=silent
+      - GF_SECURITY_ADMIN_USER=user
+      - GF_SECURITY_ADMIN_PASSWORD=user
     ports:
       - "3000:3000"
     depends_on:
@@ -187,6 +189,6 @@ networks:
   flights-network:
     driver: bridge
 
-volumes:
-  user_db_data:
-  flight_db_data:
+# volumes:
+#   user_db_data:
+#   flight_db_data:
