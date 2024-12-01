@@ -1,6 +1,7 @@
 services:
   gateway:
     build: ./gateway
+    container_name: gateway
     ports:
       - "4000:4000"
     depends_on:
@@ -20,6 +21,7 @@ services:
   user_service_1:
     build:
       context: ./user_service
+    container_name: user_service_1
     ports:
       - "5000:5000"
     depends_on:
@@ -33,6 +35,7 @@ services:
   user_service_2:
     build:
       context: ./user_service
+    container_name: user_service_2
     ports:
       - "5001:5000"
     depends_on:
@@ -46,6 +49,7 @@ services:
   user_service_3:
     build:
       context: ./user_service
+    container_name: user_service_3
     ports:
       - "5002:5000"
     depends_on:
@@ -58,6 +62,7 @@ services:
 
   user_db:
     image: postgres:17
+    container_name: user_db
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
@@ -75,6 +80,7 @@ services:
   booking_service_1:
     build:
       context: ./booking_service
+    container_name: booking_service_1
     ports:
       - "5004:5004"
     depends_on:
@@ -88,6 +94,7 @@ services:
   booking_service_2:
     build:
       context: ./booking_service
+    container_name: booking_service_2
     ports:
       - "5005:5004"
     depends_on:
@@ -101,6 +108,7 @@ services:
   booking_service_3:
     build:
       context: ./booking_service
+    container_name: booking_service_3
     ports:
       - "5006:5004"
     depends_on:
@@ -113,6 +121,7 @@ services:
 
   flight_db:
     image: mysql:8
+    container_name: flight_db
     environment:
       MYSQL_ROOT_PASSWORD: milena
       MYSQL_DATABASE: flight_db
@@ -128,10 +137,31 @@ services:
     labels:
       service_type: flight_db
 
-  redis:
+  redis_1:
     image: redis:latest
+    container_name: redis_1
     ports:
       - "6379:6379"
+    networks:
+      - flights-network
+    labels:
+      service_type: redis
+
+  redis_2:
+    image: redis:latest
+    container_name: redis_2
+    ports:
+      - "6380:6379"
+    networks:
+      - flights-network
+    labels:
+      service_type: redis
+
+  redis_3:
+    image: redis:latest
+    container_name: redis_3
+    ports:
+      - "6381:6379"
     networks:
       - flights-network
     labels:
